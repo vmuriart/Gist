@@ -45,13 +45,13 @@ def gist_title(gist):
 def gists_filter(all_gists):
     settings = sublime.load_settings('Gist.sublime-settings')
     prefix = settings.get('gist_prefix')
+    tag = settings.get('gist_tag')
+
     if prefix:
         prefix_len = len(prefix)
 
-    if settings.get('gist_tag'):
-        tag_prog = re.compile('(^|\s)#' + re.escape(settings.get('gist_tag')) + '($|\s)')
-    else:
-        tag_prog = False
+    if tag:
+        tag_prog = re.compile('(^|\s)#' + re.escape(tag) + '($|\s)')
 
     gists = []
     gists_names = []
@@ -63,18 +63,15 @@ def gists_filter(all_gists):
         name = gist_title(gist)
 
         if prefix:
-            if name[0][0:prefix_len] == prefix:
-                name[0] = name[0][prefix_len:]  # remove prefix from name
-            else:
+            if name[0][0:prefix_len] != prefix:
                 continue
+            name[0] = name[0][prefix_len:]  # remove prefix from name
 
-        if tag_prog:
+        if tag:
             match = re.search(tag_prog, name[0])
-
-            if match:
-                name[0] = name[0][0:match.start()] + name[0][match.end():]
-            else:
+            if not match:
                 continue
+            name[0] = name[0][0:match.start()] + name[0][match.end():]
 
         gists.append(gist)
         gists_names.append(name)
