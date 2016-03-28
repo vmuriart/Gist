@@ -1,4 +1,3 @@
-import contextlib
 import json
 
 import sublime
@@ -42,8 +41,7 @@ def api_request(url, data=None, token=None, https_proxy=None, method=None):
 
         urllib.install_opener(opener)
 
-    with contextlib.closing(urllib.urlopen(request)) as response:
+    with urllib.urlopen(request) as response:
         if response.code == 204:  # No Content
             return None
-        else:
-            return json.loads(response.read().decode('utf8', 'ignore'))
+        return json.loads(response.read().decode('utf8', 'ignore'))
