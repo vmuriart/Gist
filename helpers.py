@@ -83,15 +83,11 @@ def gists_filter(all_gists):
 
 
 def set_syntax(view, file_data):
-    if "language" not in file_data:
-        return
-
-    language = file_data['language']
+    language = file_data.get('language')
 
     if language is None:
         return
-
-    if language == 'C':
+    elif language == 'C':
         new_syntax = os.path.join('C++', "{0}.tmLanguage".format(language))
     else:
         new_syntax = os.path.join(language, "{0}.tmLanguage".format(language))
@@ -104,5 +100,5 @@ def set_syntax(view, file_data):
     try:
         # print(new_syntax_path)
         view.set_syntax_file(new_syntax_path)
-    except:
+    except:  # need to be more specific...
         pass
