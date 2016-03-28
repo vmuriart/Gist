@@ -3,11 +3,11 @@
     // see: https://github.com/condemil/Gist#generating-access-token
     "token": "",
 
-    // Show GitHub organizations
+    // Show gist from GitHub organizations
     // Example: "company1", "company2"
     "include_orgs": [],
 
-    // Show GitHub users
+    // Show gist from other GitHub users
     // Example: "user1", "user2"
     "include_users": [],
 
