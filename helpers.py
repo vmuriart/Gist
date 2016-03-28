@@ -34,7 +34,7 @@ def gist_title(gist):
     if description and settings.get('prefer_filename') is False:
         title = description
     else:
-        title = list(gist['files'].keys())[0]
+        title = gist['files'].keys()[0]
 
     if settings.get('show_authors'):
         return [title, gist.get('owner').get('login')]
