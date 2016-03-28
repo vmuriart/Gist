@@ -87,8 +87,9 @@ def open_gist(gist_url):
 
     for gist_filename in files:
         allowedTypes = ['text', 'application']
-        type = gist['files'][gist_filename]['type'].split('/')[0]
-        if type not in allowedTypes:
+        type_ = gist['files'][gist_filename]['type'].split('/')[0]
+
+        if type_ not in allowedTypes:
             continue
 
         view = sublime.active_window().new_file()
