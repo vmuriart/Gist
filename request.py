@@ -5,12 +5,6 @@ import sublime
 import urllib.request as urllib
 
 
-class SimpleHTTPError(Exception):
-    def __init__(self, code, response):
-        self.code = code
-        self.response = response
-
-
 class MissingCredentialsException(Exception):
     pass
 
@@ -48,13 +42,8 @@ def api_request(url, data=None, token=None, https_proxy=None, method=None):
 
         urllib.install_opener(opener)
 
-    try:
-        with contextlib.closing(urllib.urlopen(request)) as response:
-            if response.code == 204:  # No Content
-                return None
-            else:
-                return json.loads(response.read().decode('utf8', 'ignore'))
-
-    except urllib.HTTPError as err:
-        with contextlib.closing(err):
-            raise SimpleHTTPError(err.code, err.read())
+    with contextlib.closing(urllib.urlopen(request)) as response:
+        if response.code == 204:  # No Content
+            return None
+        else:
+            return json.loads(response.read().decode('utf8', 'ignore'))
