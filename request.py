@@ -14,32 +14,34 @@ def token_auth_string():
 
     if not token:
         raise MissingCredentialsException()
-
     return token
 
 
 def api_request(url, data=None, token=None, https_proxy=None, method=None):
     settings = sublime.load_settings('Gist.sublime-settings')
     request = urllib.Request(url)
-    # print('API request url:', request.get_full_url())
+
+    token = token if token is not None else token_auth_string()
+    https_proxy = https_proxy if https_proxy is not None else settings.get('https_proxy')
+
+    if https_proxy:
+        opener = urllib.build_opener(urllib.HTTPHandler(), urllib.HTTPSHandler(),
+                                     urllib.ProxyHandler({'https': https_proxy}))
+        urllib.install_opener(opener)
+
     if method:
         request.get_method = lambda: method
-    token = token if token is not None else token_auth_string()
-    request.add_header('Authorization', 'token ' + token)
-    request.add_header('Accept', 'application/json')
-    request.add_header('Content-Type', 'application/json')
 
     if data is not None:
         request.add_data(bytes(data.encode('utf8')))
 
+    request.add_header('Authorization', 'token ' + token)
+    request.add_header('Accept', 'application/json')
+    request.add_header('Content-Type', 'application/json')
+
+    # print('API request url:', request.get_full_url())
     # print('API request data:', request.get_data())
     # print('API request header:', request.header_items())
-    https_proxy = https_proxy if https_proxy is not None else settings.get('https_proxy')
-    if https_proxy:
-        opener = urllib.build_opener(urllib.HTTPHandler(), urllib.HTTPSHandler(),
-                                     urllib.ProxyHandler({'https': https_proxy}))
-
-        urllib.install_opener(opener)
 
     with urllib.urlopen(request) as response:
         if response.code == 204:  # No Content
