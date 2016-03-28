@@ -38,18 +38,20 @@ def catch_errors(fn):
     def _fn(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
+
         except MissingCredentialsException:
             sublime.error_message("Gist: GitHub token isn't provided in Gist.sublime-settings file. "
                                   "All other authorization methods are deprecated.")
             user_settings_path = os.path.join(sublime.packages_path(), 'User', 'Gist.sublime-settings')
+
             if not os.path.exists(user_settings_path):
                 default_settings_path = os.path.join(sublime.packages_path(), 'Gist', 'Gist.sublime-settings')
                 shutil.copy(default_settings_path, user_settings_path)
             sublime.active_window().open_file(user_settings_path)
+
         except:
             traceback.print_exc()
             sublime.error_message("Gist: unknown error (please, report a bug!)")
-
     return _fn
 
 
@@ -62,6 +64,7 @@ def create_gist(public, description, files):
     file_data = dict((filename, {'content': text}) for filename, text in list(files.items()))
     data = json.dumps({'description': description, 'public': public, 'files': file_data})
     gist = api_request(settings.get('GISTS_URL'), data)
+
     return gist
 
 
@@ -70,10 +73,10 @@ def update_gist(gist_url, file_changes, auth_token=None, https_proxy=None, new_d
     # print('Request:', request)
     if new_description is not None:
         request['description'] = new_description
+
     data = json.dumps(request)
     # print('Data:', data)
     result = api_request(gist_url, data, token=auth_token, https_proxy=https_proxy, method="PATCH")
-
     sublime.status_message("Gist updated")
 
     # print('Result:', result)
@@ -93,7 +96,6 @@ def open_gist(gist_url):
             continue
 
         view = sublime.active_window().new_file()
-
         gistify_view(view, gist, gist_filename)
 
         view.run_command('append', {
@@ -128,6 +130,7 @@ def insert_gist(gist_url):
                 'characters': gist['files'][gist_filename]['content'],
             })
             view.settings().set('auto_indent', True)
+
         else:
             view.run_command('insert', {
                 'characters': gist['files'][gist_filename]['content'],
@@ -161,11 +164,11 @@ class GistCommand(sublime_plugin.TextCommand):
         if len(regions) == 0:
             regions = [sublime.Region(0, self.view.size())]
             gistify = True
+
         else:
             gistify = False
 
         region_data = [self.view.substr(region) for region in regions]
-
         window = self.view.window()
 
         def on_gist_description(description):
@@ -182,10 +185,12 @@ class GistCommand(sublime_plugin.TextCommand):
                 #       $SyntaxName 1, $SyntaxName 2, etc.
                 if len(region_data) == 1:
                     gist_data = {filename: region_data[0]}
+
                 else:
                     if filename:
                         (namepart, extpart) = os.path.splitext(filename)
                         make_filename = lambda num: "%s (%d)%s" % (namepart, num, extpart)
+
                     else:
                         syntax_name, _ = os.path.splitext(os.path.basename(self.view.settings().get('syntax')))
                         make_filename = lambda num: "%s %d" % (syntax_name, num)
@@ -211,7 +216,7 @@ class GistCommand(sublime_plugin.TextCommand):
 
 
 class GistViewCommand(object):
-    """A base class for commands operating on a gistified view"""
+    """A base class for commands operating on a gistified view."""
 
     def is_enabled(self):
         return self.gist_url() is not None
@@ -324,6 +329,7 @@ class GistListCommandBase(object):
         if settings.get('include_orgs'):
             if settings.get('include_orgs'):
                 self.orgs = [org.get("login") for org in api_request(settings.get('ORGS_URL'))]
+
             else:
                 self.orgs = settings.get('include_orgs')
 
@@ -337,6 +343,7 @@ class GistListCommandBase(object):
 
             if num < 0:
                 pass
+
             elif num < offOrgs:
                 self.gists = []
 
@@ -352,6 +359,7 @@ class GistListCommandBase(object):
 
                 self.orgs = self.users = []
                 self.get_window().show_quick_panel(gist_names, on_gist_num)
+
             elif num < offUsers:
                 filtered = gists_filter(api_request(settings.get('USER_GISTS_URL') % self.users[num - offOrgs]))
                 self.gists = filtered[0]
@@ -360,6 +368,7 @@ class GistListCommandBase(object):
 
                 self.orgs = self.users = []
                 self.get_window().show_quick_panel(gist_names, on_gist_num)
+
             else:
                 self.handle_gist(self.gists[num - offUsers])
 
@@ -384,6 +393,7 @@ class GistListener(GistViewCommand, sublime_plugin.EventListener):
                 if not view.settings().get('do-update'):
                     view.settings().set('do-update', True)
                     return
+
                 text = view.substr(sublime.Region(0, view.size()))
                 changes = {view.settings().get('gist_filename'): {'content': text}}
                 gist_url = view.settings().get('gist_url')
