@@ -12,7 +12,7 @@ import sublime_plugin
 from .helpers import gistify_view, set_syntax, gists_filter, ungistify_view
 from .request import api_request, MissingCredentialsException
 
-settings = None
+settings = sublime.load_settings('Gist.sublime-settings')
 
 
 def plugin_loaded():
