@@ -327,12 +327,7 @@ class GistListCommandBase(object):
             gist_names = [["> " + user] for user in self.users] + gist_names
 
         if settings.get('include_orgs'):
-            if settings.get('include_orgs'):
-                self.orgs = [org.get("login") for org in api_request(settings.get('ORGS_URL'))]
-
-            else:
-                self.orgs = settings.get('include_orgs')
-
+            self.orgs = [org.get("login") for org in api_request(settings.get('ORGS_URL'))]
             gist_names = [["> " + org] for org in self.orgs] + gist_names
 
         # print(gist_names)
