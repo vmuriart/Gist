@@ -51,7 +51,7 @@ def update_gist(gist_url, file_changes, auth_token=None, https_proxy=None, new_d
 
     data = json.dumps(request)
     # print('Data:', data)
-    result = api_request(gist_url, data, token=auth_token, https_proxy=https_proxy, method="PATCH")
+    result = api_request(gist_url, data, method="PATCH")
     sublime.status_message("Gist updated")
 
     # print('Result:', result)
@@ -300,9 +300,7 @@ class GistListener(GistViewCommand, sublime_plugin.EventListener):
                 changes = {view.settings().get('gist_filename'): {'content': text}}
                 gist_url = view.settings().get('gist_url')
                 # Start update_gist in a thread so we don't stall the save
-                threading.Thread(target=update_gist,
-                                 args=(gist_url, changes, settings.get('token'), settings.get('https_proxy'))
-                                 ).start()
+                threading.Thread(target=update_gist, args=(gist_url, changes)).start()
 
 
 class GistListCommandBase(object):

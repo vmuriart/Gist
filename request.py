@@ -21,12 +21,12 @@ def token_auth_string():
     return token
 
 
-def api_request(url, data=None, token=None, https_proxy=None, method=None):
+def api_request(url, data=None, method=None):
     settings = sublime.load_settings('Gist.sublime-settings')
     request = urllib.Request(url)
 
-    token = token if token is not None else token_auth_string()
-    https_proxy = https_proxy if https_proxy is not None else settings.get('https_proxy')
+    token = token_auth_string()
+    https_proxy = settings.get('https_proxy')
 
     if https_proxy:
         opener = urllib.build_opener(urllib.HTTPHandler(), urllib.HTTPSHandler(),
