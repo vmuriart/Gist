@@ -234,6 +234,7 @@ class GistRenameFileCommand(GistViewCommand, sublime_plugin.TextCommand):
             if filename and filename != old_filename:
                 text = self.view.substr(sublime.Region(0, self.view.size()))
                 file_changes = {old_filename: {'filename': filename, 'content': text}}
+
                 new_gist = update_gist(self.gist_url(), file_changes)
                 gistify_view(self.view, new_gist, filename)
                 sublime.status_message('Gist file renamed')
@@ -248,6 +249,7 @@ class GistChangeDescriptionCommand(GistViewCommand, sublime_plugin.TextCommand):
             if description and description != self.gist_description():
                 gist_url = self.gist_url()
                 new_gist = update_gist(gist_url, new_description=description)
+
                 for window in sublime.windows():
                     for view in window.views():
                         if view.settings().get('gist_url') == gist_url:
@@ -263,6 +265,7 @@ class GistUpdateFileCommand(GistViewCommand, sublime_plugin.TextCommand):
     def run(self, edit):
         text = self.view.substr(sublime.Region(0, self.view.size()))
         changes = {self.gist_filename(): {'content': text}}
+
         update_gist(self.gist_url(), changes)
         sublime.status_message("Gist updated")
 
@@ -271,6 +274,7 @@ class GistDeleteFileCommand(GistViewCommand, sublime_plugin.TextCommand):
     @catch_errors
     def run(self, edit):
         changes = {self.gist_filename(): None}
+
         update_gist(self.gist_url(), changes)
         ungistify_view(self.view)
         sublime.status_message("Gist file deleted")
@@ -281,6 +285,7 @@ class GistDeleteCommand(GistViewCommand, sublime_plugin.TextCommand):
     def run(self, edit):
         gist_url = self.gist_url()
         api_request(gist_url, method='DELETE')
+
         for window in sublime.windows():
             for view in window.views():
                 if view.settings().get("gist_url") == gist_url:
@@ -401,6 +406,7 @@ class GistAddFileCommand(GistListCommandBase, sublime_plugin.TextCommand):
             if filename:
                 text = self.view.substr(sublime.Region(0, self.view.size()))
                 changes = {filename: {'content': text}}
+
                 new_gist = update_gist(gist['url'], changes)
                 gistify_view(self.view, new_gist, filename)
                 sublime.status_message("File added to Gist")
