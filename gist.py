@@ -1,16 +1,13 @@
-import functools
 import json
 import os
-import shutil
 import tempfile
 import threading
-import traceback
 import webbrowser
 
 import sublime
 import sublime_plugin
 from .helpers import gistify_view, set_syntax, gists_filter, ungistify_view
-from .request import api_request, MissingCredentialsException
+from .request import api_request, catch_errors
 
 settings = sublime.load_settings('Gist.sublime-settings')
 
@@ -31,28 +28,6 @@ def plugin_loaded():
     settings.set('STARRED_GISTS_URL', api_url + '/gists/starred' + max_gists)
     settings.set('ORGS_URL', api_url + '/user/orgs')
     settings.set('ORG_MEMBERS_URL', api_url + '/orgs/%s/members')
-
-
-def catch_errors(fn):
-    @functools.wraps(fn)
-    def _fn(*args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-
-        except MissingCredentialsException:
-            sublime.error_message("Gist: GitHub token isn't provided in Gist.sublime-settings file. "
-                                  "All other authorization methods are deprecated.")
-            user_settings_path = os.path.join(sublime.packages_path(), 'User', 'Gist.sublime-settings')
-
-            if not os.path.exists(user_settings_path):
-                default_settings_path = os.path.join(sublime.packages_path(), 'Gist', 'Gist.sublime-settings')
-                shutil.copy(default_settings_path, user_settings_path)
-            sublime.active_window().open_file(user_settings_path)
-
-        except:
-            traceback.print_exc()
-            sublime.error_message("Gist: unknown error (please, report a bug!)")
-    return _fn
 
 
 def create_gist(public, description, files):

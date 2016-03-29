@@ -1,4 +1,8 @@
+import functools
 import json
+import os
+import shutil
+import traceback
 
 import sublime
 import urllib.request as urllib
@@ -47,3 +51,25 @@ def api_request(url, data=None, token=None, https_proxy=None, method=None):
         if response.code == 204:  # No Content
             return None
         return json.loads(response.read().decode('utf8', 'ignore'))
+
+
+def catch_errors(fn):
+    @functools.wraps(fn)
+    def _fn(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+
+        except MissingCredentialsException:
+            sublime.error_message("Gist: GitHub token isn't provided in Gist.sublime-settings file. "
+                                  "All other authorization methods are deprecated.")
+            user_settings_path = os.path.join(sublime.packages_path(), 'User', 'Gist.sublime-settings')
+
+            if not os.path.exists(user_settings_path):
+                default_settings_path = os.path.join(sublime.packages_path(), 'Gist', 'Gist.sublime-settings')
+                shutil.copy(default_settings_path, user_settings_path)
+            sublime.active_window().open_file(user_settings_path)
+
+        except:
+            traceback.print_exc()
+            sublime.error_message("Gist: unknown error (please, report a bug!)")
+    return _fn
