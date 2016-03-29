@@ -157,7 +157,7 @@ class GistCommand(sublime_plugin.TextCommand):
                 sublime.status_message("%s Gist: %s" % (self.mode(), gist_html_url))
 
                 if regions:
-                    gistify_view(self.view, gist, gist['files'].keys()[0])
+                    gistify_view(self.view, gist, list(gist['files'].keys())[0])
                 # else:
                     # open_gist(gist['url'])
 
