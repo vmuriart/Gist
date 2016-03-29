@@ -1,4 +1,3 @@
-import json
 import os
 import tempfile
 import threading
@@ -37,7 +36,7 @@ def create_gist(public, description, files):
             return
 
     file_data = dict((filename, {'content': text}) for filename, text in list(files.items()))
-    data = json.dumps({'description': description, 'public': public, 'files': file_data})
+    data = {'description': description, 'public': public, 'files': file_data}
     gist = api_request(settings.get('GISTS_URL'), data)
 
     return gist
@@ -45,13 +44,11 @@ def create_gist(public, description, files):
 
 def update_gist(gist_url, file_changes=None, new_description=None):
     file_changes = dict() if file_changes is None else file_changes
+    data = {'files': file_changes}
 
-    request = {'files': file_changes}
-    # print('Request:', request)
     if new_description is not None:
-        request['description'] = new_description
+        data['description'] = new_description
 
-    data = json.dumps(request)
     # print('Data:', data)
     result = api_request(gist_url, data, method="PATCH")
     sublime.status_message("Gist updated")

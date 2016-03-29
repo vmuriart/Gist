@@ -36,7 +36,8 @@ def api_request(url, data=None, method=None):
     if method:
         request.get_method = lambda: method
 
-    if data is not None:
+    if data:
+        data = json.dumps(data)
         request.add_data(bytes(data.encode('utf8')))
 
     request.add_header('Authorization', 'token ' + token)
