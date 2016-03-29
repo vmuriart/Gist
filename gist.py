@@ -115,10 +115,6 @@ class GistCommand(sublime_plugin.TextCommand):
 
         if len(regions) == 0:
             regions = [sublime.Region(0, self.view.size())]
-            gistify = True
-
-        else:
-            gistify = False
 
         region_data = [self.view.substr(region) for region in regions]
         window = self.view.window()
@@ -157,7 +153,7 @@ class GistCommand(sublime_plugin.TextCommand):
                 sublime.set_clipboard(gist_html_url)
                 sublime.status_message("%s Gist: %s" % (self.mode(), gist_html_url))
 
-                if gistify:
+                if regions:
                     gistify_view(self.view, gist, gist['files'].keys()[0])
                 # else:
                     # open_gist(gist['url'])
