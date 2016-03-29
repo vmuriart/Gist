@@ -43,7 +43,9 @@ def create_gist(public, description, files):
     return gist
 
 
-def update_gist(gist_url, file_changes, auth_token=None, https_proxy=None, new_description=None):
+def update_gist(gist_url, file_changes=None, new_description=None):
+    file_changes = dict() if file_changes is None else file_changes
+
     request = {'files': file_changes}
     # print('Request:', request)
     if new_description is not None:
@@ -245,7 +247,7 @@ class GistChangeDescriptionCommand(GistViewCommand, sublime_plugin.TextCommand):
         def on_gist_description(description):
             if description and description != self.gist_description():
                 gist_url = self.gist_url()
-                new_gist = update_gist(gist_url, {}, new_description=description)
+                new_gist = update_gist(gist_url, new_description=description)
                 for window in sublime.windows():
                     for view in window.views():
                         if view.settings().get('gist_url') == gist_url:
