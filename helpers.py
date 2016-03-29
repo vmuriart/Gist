@@ -95,7 +95,6 @@ def set_syntax(view, file_data):
         new_syntax_path = new_syntax_path.replace('\\', '/')
 
     try:
-        # print(new_syntax_path)
         view.set_syntax_file(new_syntax_path)
     except:  # need to be more specific...
         pass

@@ -44,10 +44,6 @@ def api_request(url, data=None, method=None):
     request.add_header('Accept', 'application/json')
     request.add_header('Content-Type', 'application/json')
 
-    # print('API request url:', request.get_full_url())
-    # print('API request data:', request.get_data())
-    # print('API request header:', request.header_items())
-
     with urllib.urlopen(request) as response:
         if response.code == 204:  # No Content
             return None

@@ -16,7 +16,7 @@ def plugin_loaded():
     settings = sublime.load_settings('Gist.sublime-settings')
 
     if settings.get('max_gists') > 100:
-        settings.set('max_gists', 100)  # the URLs are not updated.
+        settings.set('max_gists', 100)
         sublime.status_message("Gist: GitHub API does not support a value of higher than 100")
 
     max_gists = '?per_page=%d' % settings.get('max_gists')
@@ -49,17 +49,14 @@ def update_gist(gist_url, file_changes=None, new_description=None):
     if new_description is not None:
         data['description'] = new_description
 
-    # print('Data:', data)
     result = api_request(gist_url, data, method="PATCH")
     sublime.status_message("Gist updated")
 
-    # print('Result:', result)
     return result
 
 
 def open_gist(gist_url):
     gist = api_request(gist_url)
-    # print('Gist:', gist)
     files = sorted(gist['files'].keys())
 
     for gist_filename in files:
@@ -326,8 +323,6 @@ class GistListCommandBase(object):
             self.orgs = [org.get("login") for org in api_request(settings.get('ORGS_URL'))]
             gist_names = [["> " + org] for org in self.orgs] + gist_names
 
-        # print(gist_names)
-
         def on_gist_num(num):
             off_orgs = len(self.orgs)
             off_users = off_orgs + len(self.users)
@@ -346,7 +341,6 @@ class GistListCommandBase(object):
                 filtered = gists_filter(self.gists)
                 self.gists = filtered[0]
                 gist_names = filtered[1]
-                # print(gist_names)
 
                 self.orgs = self.users = []
                 self.get_window().show_quick_panel(gist_names, on_gist_num)
@@ -355,7 +349,6 @@ class GistListCommandBase(object):
                 filtered = gists_filter(api_request(settings.get('USER_GISTS_URL') % self.users[num - off_orgs]))
                 self.gists = filtered[0]
                 gist_names = filtered[1]
-                # print(gist_names)
 
                 self.orgs = self.users = []
                 self.get_window().show_quick_panel(gist_names, on_gist_num)
