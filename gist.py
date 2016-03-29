@@ -215,6 +215,10 @@ class GistCommand(sublime_plugin.TextCommand):
         window.show_input_panel("Gist Description (optional):", '', on_gist_description, None, None)
 
 
+class GistPrivateCommand(GistCommand):
+    public = False
+
+
 class GistViewCommand(object):
     """A base class for commands operating on a gistified view."""
 
@@ -307,8 +311,23 @@ class GistDeleteCommand(GistViewCommand, sublime_plugin.TextCommand):
         sublime.status_message("Gist deleted")
 
 
-class GistPrivateCommand(GistCommand):
-    public = False
+class GistListener(GistViewCommand, sublime_plugin.EventListener):
+    @catch_errors
+    def on_pre_save(self, view):
+        if view.settings().get('gist_filename') is not None:
+            if settings.get('save-update-hook'):
+                # we ignore the first update, it happens upon loading a gist
+                if not view.settings().get('do-update'):
+                    view.settings().set('do-update', True)
+                    return
+
+                text = view.substr(sublime.Region(0, view.size()))
+                changes = {view.settings().get('gist_filename'): {'content': text}}
+                gist_url = view.settings().get('gist_url')
+                # Start update_gist in a thread so we don't stall the save
+                threading.Thread(target=update_gist,
+                                 args=(gist_url, changes, settings.get('token'), settings.get('https_proxy'))
+                                 ).start()
 
 
 class GistListCommandBase(object):
@@ -377,25 +396,6 @@ class GistListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
 
     def get_window(self):
         return self.window
-
-
-class GistListener(GistViewCommand, sublime_plugin.EventListener):
-    @catch_errors
-    def on_pre_save(self, view):
-        if view.settings().get('gist_filename') is not None:
-            if settings.get('save-update-hook'):
-                # we ignore the first update, it happens upon loading a gist
-                if not view.settings().get('do-update'):
-                    view.settings().set('do-update', True)
-                    return
-
-                text = view.substr(sublime.Region(0, view.size()))
-                changes = {view.settings().get('gist_filename'): {'content': text}}
-                gist_url = view.settings().get('gist_url')
-                # Start update_gist in a thread so we don't stall the save
-                threading.Thread(target=update_gist,
-                                 args=(gist_url, changes, settings.get('token'), settings.get('https_proxy'))
-                                 ).start()
 
 
 class InsertGistListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
