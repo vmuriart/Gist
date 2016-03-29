@@ -29,6 +29,7 @@ def plugin_loaded():
     settings.set('ORG_MEMBERS_URL', api_url + '/orgs/%s/members')
 
 
+@catch_errors
 def create_gist(public, description, files):
     for text in files.values():
         if not text:
@@ -41,6 +42,7 @@ def create_gist(public, description, files):
     return api_request(settings.get('GISTS_URL'), data)
 
 
+@catch_errors
 def update_gist(gist_url, file_changes=None, new_description=None):
     file_changes = dict() if file_changes is None else file_changes
     data = {'files': file_changes}
@@ -54,6 +56,7 @@ def update_gist(gist_url, file_changes=None, new_description=None):
     return result
 
 
+@catch_errors
 def open_gist(gist_url):
     allowed_types = 'text', 'application'
     gist = api_request(gist_url)
@@ -81,6 +84,7 @@ def open_gist(gist_url):
         set_syntax(view, data)
 
 
+@catch_errors
 def insert_gist(gist_url):
     gist = api_request(gist_url)
 
@@ -93,6 +97,7 @@ def insert_gist(gist_url):
         view.settings().set('auto_indent', auto_indent)
 
 
+@catch_errors
 def insert_gist_embed(gist_url):
     gist = api_request(gist_url)
 
@@ -109,7 +114,6 @@ class GistCommand(sublime_plugin.TextCommand):
     def mode(self):
         return "Public" if self.public else "Private"
 
-    @catch_errors
     def run(self, edit):
         regions = [region for region in self.view.sel() if not region.empty()]
 
@@ -122,7 +126,6 @@ class GistCommand(sublime_plugin.TextCommand):
         def on_gist_description(description):
             filename = os.path.basename(self.view.file_name() if self.view.file_name() else '')
 
-            @catch_errors
             def on_gist_filename(filename):
                 # We need to figure out the filenames. Right now, the following logic is used:
                 #   If there's only 1 selection, just pass whatever the user typed to Github.
@@ -200,7 +203,6 @@ class GistRenameFileCommand(GistViewCommand, sublime_plugin.TextCommand):
     def run(self, edit):
         old_filename = self.gist_filename()
 
-        @catch_errors
         def on_filename(filename):
             if filename and filename != old_filename:
                 text = self.view.substr(sublime.Region(0, self.view.size()))
@@ -215,7 +217,6 @@ class GistRenameFileCommand(GistViewCommand, sublime_plugin.TextCommand):
 
 class GistChangeDescriptionCommand(GistViewCommand, sublime_plugin.TextCommand):
     def run(self, edit):
-        @catch_errors
         def on_gist_description(description):
             if description and description != self.gist_description():
                 gist_url = self.gist_url()
@@ -232,7 +233,6 @@ class GistChangeDescriptionCommand(GistViewCommand, sublime_plugin.TextCommand):
 
 
 class GistUpdateFileCommand(GistViewCommand, sublime_plugin.TextCommand):
-    @catch_errors
     def run(self, edit):
         text = self.view.substr(sublime.Region(0, self.view.size()))
         changes = {self.gist_filename(): {'content': text}}
@@ -242,7 +242,6 @@ class GistUpdateFileCommand(GistViewCommand, sublime_plugin.TextCommand):
 
 
 class GistDeleteFileCommand(GistViewCommand, sublime_plugin.TextCommand):
-    @catch_errors
     def run(self, edit):
         changes = {self.gist_filename(): None}
 
@@ -265,7 +264,6 @@ class GistDeleteCommand(GistViewCommand, sublime_plugin.TextCommand):
 
 
 class GistListener(GistViewCommand, sublime_plugin.EventListener):
-    @catch_errors
     def on_pre_save(self, view):
         if view.settings().get('gist_filename') is not None:
             if settings.get('save_update_hook'):
@@ -337,7 +335,6 @@ class GistListCommandBase(object):
 
 
 class GistListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
-    @catch_errors
     def handle_gist(self, gist):
         open_gist(gist['url'])
 
@@ -346,7 +343,6 @@ class GistListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
 
 
 class InsertGistListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
-    @catch_errors
     def handle_gist(self, gist):
         insert_gist(gist['url'])
 
@@ -355,7 +351,6 @@ class InsertGistListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
 
 
 class InsertGistEmbedListCommand(GistListCommandBase, sublime_plugin.WindowCommand):
-    @catch_errors
     def handle_gist(self, gist):
         insert_gist_embed(gist['url'])
 
@@ -368,7 +363,6 @@ class GistAddFileCommand(GistListCommandBase, sublime_plugin.TextCommand):
         return self.view.settings().get('gist_url') is None
 
     def handle_gist(self, gist):
-        @catch_errors
         def on_filename(filename):
             if filename:
                 text = self.view.substr(sublime.Region(0, self.view.size()))
