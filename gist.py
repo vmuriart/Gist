@@ -23,12 +23,12 @@ def plugin_loaded():
         settings.set('max_gists', 100)  # the URLs are not updated.
         sublime.status_message("Gist: GitHub API does not support a value of higher than 100")
 
-    MAX_GISTS = '?per_page=%d' % settings.get('max_gists')
+    max_gists = '?per_page=%d' % settings.get('max_gists')
 
     api_url = settings.get('api_url')  # Should add validation?
-    settings.set('GISTS_URL', api_url + '/gists' + MAX_GISTS)
-    settings.set('USER_GISTS_URL', api_url + '/users/%s/gists' + MAX_GISTS)
-    settings.set('STARRED_GISTS_URL', api_url + '/gists/starred' + MAX_GISTS)
+    settings.set('GISTS_URL', api_url + '/gists' + max_gists)
+    settings.set('USER_GISTS_URL', api_url + '/users/%s/gists' + max_gists)
+    settings.set('STARRED_GISTS_URL', api_url + '/gists/starred' + max_gists)
     settings.set('ORGS_URL', api_url + '/user/orgs')
     settings.set('ORG_MEMBERS_URL', api_url + '/orgs/%s/members')
 
@@ -89,10 +89,10 @@ def open_gist(gist_url):
     files = sorted(gist['files'].keys())
 
     for gist_filename in files:
-        allowedTypes = ['text', 'application']
+        allowed_types = ['text', 'application']
         type_ = gist['files'][gist_filename]['type'].split('/')[0]
 
-        if type_ not in allowedTypes:
+        if type_ not in allowed_types:
             continue
 
         view = sublime.active_window().new_file()
@@ -352,13 +352,13 @@ class GistListCommandBase(object):
         # print(gist_names)
 
         def on_gist_num(num):
-            offOrgs = len(self.orgs)
-            offUsers = offOrgs + len(self.users)
+            off_orgs = len(self.orgs)
+            off_users = off_orgs + len(self.users)
 
             if num < 0:
                 pass
 
-            elif num < offOrgs:
+            elif num < off_orgs:
                 self.gists = []
 
                 members = [member.get("login") for member in
@@ -374,8 +374,8 @@ class GistListCommandBase(object):
                 self.orgs = self.users = []
                 self.get_window().show_quick_panel(gist_names, on_gist_num)
 
-            elif num < offUsers:
-                filtered = gists_filter(api_request(settings.get('USER_GISTS_URL') % self.users[num - offOrgs]))
+            elif num < off_users:
+                filtered = gists_filter(api_request(settings.get('USER_GISTS_URL') % self.users[num - off_orgs]))
                 self.gists = filtered[0]
                 gist_names = filtered[1]
                 # print(gist_names)
@@ -384,7 +384,7 @@ class GistListCommandBase(object):
                 self.get_window().show_quick_panel(gist_names, on_gist_num)
 
             else:
-                self.handle_gist(self.gists[num - offUsers])
+                self.handle_gist(self.gists[num - off_users])
 
         self.get_window().show_quick_panel(gist_names, on_gist_num)
 
