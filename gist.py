@@ -30,16 +30,15 @@ def plugin_loaded():
 
 
 def create_gist(public, description, files):
-    for filename, text in list(files.items()):
+    for text in files.values():
         if not text:
             sublime.error_message("Gist: Unable to create a Gist with empty content")
             return
 
-    file_data = dict((filename, {'content': text}) for filename, text in list(files.items()))
+    file_data = {filename: {'content': text} for filename, text in files.items()}
     data = {'description': description, 'public': public, 'files': file_data}
-    gist = api_request(settings.get('GISTS_URL'), data)
 
-    return gist
+    return api_request(settings.get('GISTS_URL'), data)
 
 
 def update_gist(gist_url, file_changes=None, new_description=None):
@@ -56,70 +55,52 @@ def update_gist(gist_url, file_changes=None, new_description=None):
 
 
 def open_gist(gist_url):
+    allowed_types = 'text', 'application'
     gist = api_request(gist_url)
-    files = sorted(gist['files'].keys())
 
-    for gist_filename in files:
-        allowed_types = ['text', 'application']
-        type_ = gist['files'][gist_filename]['type'].split('/')[0]
+    for filename, data in gist['files'].items():
+        type_ = data['type'].split('/')[0]
 
         if type_ not in allowed_types:
             continue
 
         view = sublime.active_window().new_file()
-        gistify_view(view, gist, gist_filename)
-
-        view.run_command('append', {
-            'characters': gist['files'][gist_filename]['content'],
-        })
+        gistify_view(view, gist, filename)
+        view.run_command('append', {'characters': data['content']})
 
         if settings.get('supress_save_dialog'):
             view.set_scratch(True)
 
         if settings.get('save_update_hook'):
-            view.retarget(tempfile.gettempdir() + '/' + gist_filename)
+            view.retarget(tempfile.gettempdir() + '/' + filename)
             # Save over it (to stop us reloading from that file in case it exists)
             # But don't actually do a gist update
             view.settings().set('do-update', False)
             view.run_command('save')
 
-        set_syntax(view, gist['files'][gist_filename])
+        set_syntax(view, data)
 
 
 def insert_gist(gist_url):
     gist = api_request(gist_url)
-    files = sorted(gist['files'].keys())
 
-    for gist_filename in files:
+    for data in gist['files'].values():
         view = sublime.active_window().active_view()
+        auto_indent = view.settings().get('auto_indent')
 
-        is_auto_indent = view.settings().get('auto_indent')
-
-        if is_auto_indent:
-            view.settings().set('auto_indent', False)
-            view.run_command('insert', {
-                'characters': gist['files'][gist_filename]['content'],
-            })
-            view.settings().set('auto_indent', True)
-
-        else:
-            view.run_command('insert', {
-                'characters': gist['files'][gist_filename]['content'],
-            })
+        view.settings().set('auto_indent', False)
+        view.run_command('insert', {'characters': data['content']})
+        view.settings().set('auto_indent', auto_indent)
 
 
 def insert_gist_embed(gist_url):
     gist = api_request(gist_url)
-    files = sorted(gist['files'].keys())
 
-    for gist_filename in files:
+    for data in gist['files'].values():
+        template = '<script src="{0}"></script>'.format(data['raw_url'])
+
         view = sublime.active_window().active_view()
-
-        template = '<script src="{0}"></script>'.format(gist['files'][gist_filename]['raw_url'])
-
-        view.run_command('insert', {
-            'characters': template,
-        })
+        view.run_command('insert', {'characters': template})
 
 
 class GistCommand(sublime_plugin.TextCommand):
@@ -159,13 +140,13 @@ class GistCommand(sublime_plugin.TextCommand):
 
                 else:
                     if filename:
-                        (namepart, extpart) = os.path.splitext(filename)
+                        namepart, extpart = os.path.splitext(filename)
                         make_filename = lambda num: "%s (%d)%s" % (namepart, num, extpart)
 
                     else:
                         syntax_name, _ = os.path.splitext(os.path.basename(self.view.settings().get('syntax')))
                         make_filename = lambda num: "%s %d" % (syntax_name, num)
-                    gist_data = dict((make_filename(idx), data) for idx, data in enumerate(region_data, 1))
+                    gist_data = {make_filename(idx): data for idx, data in enumerate(region_data, 1)}
 
                 gist = create_gist(self.public, description, gist_data)
 
@@ -177,7 +158,7 @@ class GistCommand(sublime_plugin.TextCommand):
                 sublime.status_message("%s Gist: %s" % (self.mode(), gist_html_url))
 
                 if gistify:
-                    gistify_view(self.view, gist, list(gist['files'].keys())[0])
+                    gistify_view(self.view, gist, gist['files'].keys()[0])
                 # else:
                     # open_gist(gist['url'])
 
@@ -316,7 +297,7 @@ class GistListCommandBase(object):
         gist_names = filtered[1] + list(map(lambda x: [u"★ " + x[0]], filtered_stars[1]))
 
         if settings.get('include_users'):
-            self.users = list(settings.get('include_users'))
+            self.users = settings.get('include_users')
             gist_names = [["> " + user] for user in self.users] + gist_names
 
         if settings.get('include_orgs'):
