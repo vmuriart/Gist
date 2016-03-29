@@ -80,7 +80,7 @@ def open_gist(gist_url):
         if settings.get('supress_save_dialog'):
             view.set_scratch(True)
 
-        if settings.get('save-update-hook'):
+        if settings.get('save_update_hook'):
             view.retarget(tempfile.gettempdir() + '/' + gist_filename)
             # Save over it (to stop us reloading from that file in case it exists)
             # But don't actually do a gist update
@@ -290,7 +290,7 @@ class GistListener(GistViewCommand, sublime_plugin.EventListener):
     @catch_errors
     def on_pre_save(self, view):
         if view.settings().get('gist_filename') is not None:
-            if settings.get('save-update-hook'):
+            if settings.get('save_update_hook'):
                 # we ignore the first update, it happens upon loading a gist
                 if not view.settings().get('do-update'):
                     view.settings().set('do-update', True)
