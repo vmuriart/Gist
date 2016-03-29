@@ -86,8 +86,8 @@ def insert_gist(gist_url):
 
     for data in gist['files'].values():
         view = sublime.active_window().active_view()
-        auto_indent = view.settings().get('auto_indent')
 
+        auto_indent = view.settings().get('auto_indent')
         view.settings().set('auto_indent', False)
         view.run_command('insert', {'characters': data['content']})
         view.settings().set('auto_indent', auto_indent)
