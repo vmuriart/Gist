@@ -10,7 +10,7 @@ def gistify_view(view, gist, gist_filename):
     if not view.file_name():
         view.set_name(gist_filename)
     elif os.path.basename(view.file_name()) != gist_filename:
-        statusline_string = "%s (%s)" % (statusline_string, gist_filename)
+        statusline_string = "{0!s} ({1!s})".format(statusline_string, gist_filename)
 
     view.settings().set('gist_html_url', gist["html_url"])
     view.settings().set('gist_description', gist['description'])

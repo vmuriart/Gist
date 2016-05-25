@@ -23,7 +23,7 @@ def plugin_loaded():
         settings.set('max_gists', 100)  # the URLs are not updated.
         sublime.status_message("Gist: GitHub API does not support a value of higher than 100")
 
-    MAX_GISTS = '?per_page=%d' % settings.get('max_gists')
+    MAX_GISTS = '?per_page={0:d}'.format(settings.get('max_gists'))
 
     api_url = settings.get('api_url')  # Should add validation?
     settings.set('GISTS_URL', api_url + '/gists' + MAX_GISTS)
@@ -184,10 +184,10 @@ class GistCommand(sublime_plugin.TextCommand):
                 else:
                     if filename:
                         (namepart, extpart) = os.path.splitext(filename)
-                        make_filename = lambda num: "%s (%d)%s" % (namepart, num, extpart)
+                        make_filename = lambda num: "{0!s} ({1:d}){2!s}".format(namepart, num, extpart)
                     else:
                         syntax_name, _ = os.path.splitext(os.path.basename(self.view.settings().get('syntax')))
-                        make_filename = lambda num: "%s %d" % (syntax_name, num)
+                        make_filename = lambda num: "{0!s} {1:d}".format(syntax_name, num)
                     gist_data = dict((make_filename(idx), data) for idx, data in enumerate(region_data, 1))
 
                 gist = create_gist(self.public, description, gist_data)
@@ -197,7 +197,7 @@ class GistCommand(sublime_plugin.TextCommand):
 
                 gist_html_url = gist['html_url']
                 sublime.set_clipboard(gist_html_url)
-                sublime.status_message("%s Gist: %s" % (self.mode(), gist_html_url))
+                sublime.status_message("{0!s} Gist: {1!s}".format(self.mode(), gist_html_url))
 
                 if gistify:
                     gistify_view(self.view, gist, list(gist['files'].keys())[0])
